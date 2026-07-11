@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: identity-service
+  labels:
+    app.kubernetes.io/name: identity-service
+    app.kubernetes.io/managed-by: kubectl
