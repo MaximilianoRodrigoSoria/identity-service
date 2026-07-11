@@ -225,6 +225,9 @@ ext.jacocoExcludePatterns = [
     '**/specification/**',   // JPA Specifications
     '**/cache/**',           // CacheLoggingAspect y helpers de caché
     '**/*Application*',      // Clase principal de Spring Boot
+    '**/health/**',          // HealthIndicators (glue de Actuator)
+    '**/worker/**',          // Schedulers / pollers
+    '**/handler/**',         // glue de estrategias
 ]
 
 jacocoTestReport {

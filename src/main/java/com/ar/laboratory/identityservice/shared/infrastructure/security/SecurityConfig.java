@@ -80,6 +80,15 @@ public class SecurityConfig {
                                                 "/swagger-ui/**",
                                                 "/swagger-ui.html")
                                         .permitAll()
+                                        // Endpoints públicos de autenticación
+                                        .requestMatchers(
+                                                "/api/v1/auth/register",
+                                                "/api/v1/auth/login",
+                                                "/api/v1/auth/refresh")
+                                        .permitAll()
+                                        // Feature demo del scaffold (sin auth)
+                                        .requestMatchers("/api/v1/examples/**")
+                                        .permitAll()
                                         // Todo lo demás requiere autenticación
                                         .anyRequest()
                                         .authenticated())

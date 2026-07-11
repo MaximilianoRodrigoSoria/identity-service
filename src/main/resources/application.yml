@@ -137,11 +137,13 @@ app:
 
   # Spring Security + JWT (desactivado por default)
   security:
-    enabled: false
+    enabled: true
     jwt:
       # Reemplazar con un secret de ≥ 256 bits en producción
       secret: "changeme-replace-with-a-256-bit-secret-key-in-production"
       expiration-ms: 86400000  # 24 horas
+      access-expiration-ms: 900000   # 15 min — vida del access token del servicio de identidad
+      refresh-expiration-days: 30    # vida del refresh token
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Resilience4j — Circuit Breaker + Retry
@@ -183,4 +185,10 @@ resilience4j:
         # Tiempo máximo que un hilo espera para obtener un permiso antes de recibir 429
         timeout-duration: 0s
         # Registrar métricas en Actuator
+        register-health-indicator: true
+      auth-api:
+        # Rate limit del API de auth: 20 req/s
+        limit-for-period: 20
+        limit-refresh-period: 1s
+        timeout-duration: 0s
         register-health-indicator: true

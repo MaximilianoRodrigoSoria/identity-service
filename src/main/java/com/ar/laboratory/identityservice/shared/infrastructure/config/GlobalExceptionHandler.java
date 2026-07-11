@@ -4,6 +4,12 @@ import com.ar.laboratory.identityservice.example.domain.exception.ExampleAlready
 import com.ar.laboratory.identityservice.example.domain.exception.ExampleNotFoundException;
 import com.ar.laboratory.identityservice.shared.infrastructure.exception.BadRequestException;
 import com.ar.laboratory.identityservice.shared.infrastructure.exception.InfrastructureException;
+import com.ar.laboratory.identityservice.auth.domain.exception.AccountNotActiveException;
+import com.ar.laboratory.identityservice.auth.domain.exception.EmailAlreadyRegisteredException;
+import com.ar.laboratory.identityservice.auth.domain.exception.InvalidCredentialsException;
+import com.ar.laboratory.identityservice.auth.domain.exception.InvalidRefreshTokenException;
+import com.ar.laboratory.identityservice.auth.domain.exception.TokenReuseDetectedException;
+import com.ar.laboratory.identityservice.auth.domain.exception.UserNotFoundException;
 import com.ar.laboratory.identityservice.shared.infrastructure.logging.MdcFilter;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import java.time.LocalDateTime;
@@ -80,6 +86,41 @@ public class GlobalExceptionHandler {
                         .build();
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(EmailAlreadyRegisteredException.class)
+    public ResponseEntity<ErrorResponse> handleEmailAlreadyRegistered(
+            EmailAlreadyRegisteredException ex, WebRequest request) {
+        log.warn("EmailAlreadyRegisteredException: {}", ex.getMessage());
+        return build(HttpStatus.CONFLICT, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUserNotFound(
+            UserNotFoundException ex, WebRequest request) {
+        log.warn("UserNotFoundException: {}", ex.getMessage());
+        return build(HttpStatus.NOT_FOUND, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidCredentials(
+            InvalidCredentialsException ex, WebRequest request) {
+        log.warn("InvalidCredentialsException");
+        return build(HttpStatus.UNAUTHORIZED, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler({InvalidRefreshTokenException.class, TokenReuseDetectedException.class})
+    public ResponseEntity<ErrorResponse> handleInvalidRefresh(
+            RuntimeException ex, WebRequest request) {
+        log.warn("Refresh token inválido: {}", ex.getMessage());
+        return build(HttpStatus.UNAUTHORIZED, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(AccountNotActiveException.class)
+    public ResponseEntity<ErrorResponse> handleAccountNotActive(
+            AccountNotActiveException ex, WebRequest request) {
+        log.warn("AccountNotActiveException: {}", ex.getMessage());
+        return build(HttpStatus.FORBIDDEN, ex.getMessage(), request);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -168,6 +209,21 @@ public class GlobalExceptionHandler {
                         .build();
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
+    /** Construye una respuesta de error estándar. */
+    private ResponseEntity<ErrorResponse> build(
+            HttpStatus status, String message, WebRequest request) {
+        ErrorResponse errorResponse =
+                ErrorResponse.builder()
+                        .timestamp(LocalDateTime.now())
+                        .status(status.value())
+                        .error(status.getReasonPhrase())
+                        .message(message)
+                        .path(getPath(request))
+                        .traceId(generateTraceId())
+                        .build();
+        return ResponseEntity.status(status).body(errorResponse);
     }
 
     private String getPath(WebRequest request) {

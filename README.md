@@ -44,9 +44,22 @@ Java 21 · Spring Security · JWT · PostgreSQL · Redis · Gradle · Flyway · 
 
 Organizado por **feature** en capas `domain -> application -> infrastructure`, con la regla de dependencia verificada por ArchUnit. La logica de negocio (dominio y casos de uso) no depende de framework ni de infraestructura; los adaptadores (web, persistencia, mensajeria) implementan puertos definidos por la aplicacion.
 
+## API
+
+Contexto: `/identity-service/api/v1/auth`. Seguridad activada (JWT); endpoints publicos: register, login, refresh.
+
+| Metodo | Ruta | Descripcion |
+|--------|------|-------------|
+| `POST` | `/register` | Alta de usuario (BCrypt), rol `ROLE_USER` por defecto |
+| `POST` | `/login` | Devuelve access token (JWT corto) + refresh token rotativo |
+| `POST` | `/refresh` | Rota el refresh token; detecta reuso (revoca la familia) |
+| `GET`  | `/me` | Usuario autenticado (requiere Bearer) |
+| `POST` | `/logout` | Revoca todas las sesiones del usuario |
+| `POST` | `/password/change` | Cambia la contrasena y revoca sesiones |
+
 ## Estado
 
-🚧 En planificacion / arranque. El diseno detallado (epicas, historias y criterios de aceptacion) vive en el plan del portafolio.
+✅ Nucleo funcional implementado: registro con hash BCrypt, login con access JWT + refresh token rotativo, deteccion de reuso, RBAC (roles/permisos con seed), /me, logout y cambio de contrasena. Persistencia JPA/PostgreSQL + migracion Flyway, Spring Security, tests (unit + Testcontainers). La feature `example` del scaffold se conserva como referencia. Extensiones documentadas para el futuro: verificacion por email, MFA (TOTP), OAuth2 y reset por email.
 
 ---
 
